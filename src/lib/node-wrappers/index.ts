@@ -5,6 +5,7 @@ import { ETHWrapper, ETHBesuWrapper } from "./ETH";
 import ARBIWrapper from "./ARBI";
 import XMRWrapper from './XMR'; 
 import RINKEBYWrapper from "./RINKEBY";
+import BERAWrapper from "./BERA";
 import BlockchainWrapper from "./base";
 
 export {
@@ -17,4 +18,5 @@ export {
   ETHBesuWrapper,
   RINKEBYWrapper,
   ARBIWrapper,
+  BERAWrapper,
 };

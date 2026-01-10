@@ -25,6 +25,12 @@ export const enabledHooks: any = {
     "EatBCH",
     "Memo",
     "SLP"
+  ],
+  BERA: [
+    "DefaultHousing",
+    "BGTStation",
+    "Kodiak",
+    "Infrared"
   ]
 };
 

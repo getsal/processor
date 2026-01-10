@@ -1,0 +1,51 @@
+import ChainImplementation from '../../implementation'; 
+import mongodb from '../../../../databases/mongodb'; 
+
+/**
+ * Default Housing implementation for Berachain
+ * Maps contract addresses to house names for transaction visualization
+ */
+class DefaultHousing extends ChainImplementation {
+    public mapAddressToHouse: { [address: string]: string } = {};
+
+    async init(): Promise<ChainImplementation> {
+        try {
+            if(process.env.USE_DATABASE === "false")
+                return this;
+            const { database } = await mongodb(); 
+            const collection = database.collection('houses');
+            
+            // Exclude houses that have their own dedicated implementations
+            const excludedHouses = ["kodiak", "infrared", "bgtstation"];
+            const results = await collection.find({ 
+                chain: this.chain, 
+                name: { $nin: excludedHouses } 
+            }).toArray();
+            
+            for(let i = 0; i < results.length; i++) {
+                let doc = results[i]; 
+                if(!doc.contracts) continue;
+                doc.contracts.forEach((address: string) => 
+                    this.mapAddressToHouse[address.toLowerCase()] = doc.name
+                ); 
+            }
+            console.log(`BERA: initialized default housing with ${Object.keys(this.mapAddressToHouse).length} contracts`);
+        } catch (error) {
+            console.error("BERA DefaultHousing init error:", error);
+        } finally {
+            return this; 
+        }
+    }
+
+    async validate(transaction: any): Promise<boolean> {
+        if (!transaction.to) return false;
+        return this.mapAddressToHouse[transaction.to.toLowerCase()] != null; 
+    }
+
+    async execute(transaction: any): Promise<boolean> {
+        transaction.house = this.mapAddressToHouse[transaction.to.toLowerCase()];
+        return true; 
+    }
+}
+
+export default new DefaultHousing('BERA'); 
