@@ -20,6 +20,7 @@ export const lastBlocksFull: any = {};
 export default async (data: any): Promise<any> => {
     const { chain, height, hash, block } = data;
     const room = `${chain}-blocks`;
+    console.log(`[WS-BlockHandler] Received block for chain ${chain}, broadcasting to room ${room}`);
 
     if(lastBlocks[chain] && hash && lastBlocks[chain].includes(hash)) return;
     if(lastBlocksFull[chain]){

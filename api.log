@@ -1,0 +1,12 @@
+Valid chains: [
+  'BTC',  'LTC',
+  'BCH',  'XMR',
+  'ETH',  'RINKEBY',
+  'ARBI', 'BERA'
+]
+Enabled chains: [ 'BERA' ]
+addresses
+blocks
+transactions
+Start listening
+Server listening on port: 8080

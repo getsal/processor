@@ -19,7 +19,7 @@ router.get('/:chain/:id', async (request: Request, response: Response) => {
     if(!chain) return response.json({ success: false, code: -1, message: 'Chain not provided in request.' }); 
     chain = chain.toUpperCase(); 
 
-    if(!['ETH', 'RINKEBY', 'BTC', 'LTC', 'BCH', 'XMR', 'ARBI'].includes(chain))
+    if(!['ETH', 'RINKEBY', 'BTC', 'LTC', 'BCH', 'XMR', 'ARBI', 'BERA'].includes(chain))
         return response.json({ success: false, code: -1, message: 'Invalid chain specified' }); 
 
     // It is assumed that if a number is passed for the `id` parameter then a height is being requests. 
@@ -31,7 +31,7 @@ router.get('/:chain/:id', async (request: Request, response: Response) => {
 
     const id = isHeight ? Number(request.params.id) : request.params.id; 
     if(!id) return response.json({ success: false, code: -1, message: 'Block id not provided in request.' });
-    if(isHeight && id <= 0) return response.json({ success: false, code: -1, message: 'Block id (height) is invalid' });
+    if(isHeight && (id as number) <= 0) return response.json({ success: false, code: -1, message: 'Block id (height) is invalid' });
 
     // Rather or not this request returns the data or a link to the data. 
     // const verbose = request.query.verbose === "true" ? true : false; 
@@ -57,6 +57,12 @@ router.get('/:chain/:id', async (request: Request, response: Response) => {
     const existingBlock: any = await collection.findOne({ [isHeight ? 'height' : 'hash']: id }); 
 
     // If the block request already exists and has been processed, we simply process the request. 
+    if(existingBlock) {
+        console.log(`[API] DB Hit for ${id}. processed: ${existingBlock.processed}, lastFetch: ${existingBlock.lastTransactionFetch}`);
+    } else {
+        console.log(`[API] DB Miss for ${id}`);
+    }
+
     if(existingBlock && existingBlock.processed && existingBlock.lastTransactionFetch > Date.now() - 1209600000) {
         const filePath = path.join("blocks", chain, existingBlock.hash);
         const foundData = await readNFSFile(filePath);  

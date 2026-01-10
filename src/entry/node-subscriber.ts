@@ -202,6 +202,34 @@ const init = async () => {
 
         getLatestBlockLoop(xmrWrapper);
     }
+
+    if (chainsToSubscribe.includes('BERA')) {
+        const wrapperClass = await import("../lib/node-wrappers/BERA");
+        let beraWrapper = new wrapperClass.default(process.env.BERA_NODE as string);
+
+        Hooks.initHooks('BERA');
+
+        console.log("Initializing BERA chain...");
+
+        beraWrapper.on('mempool-tx', (transaction: any) => {
+            if (!transaction.blockHeight && transaction.blockNumber) {
+                transaction.blockHeight = transaction.blockNumber;
+                delete transaction.blockNumber;
+            }
+            processTransaction(beraWrapper, { ...transaction, processed: true });
+        });
+
+        beraWrapper.on('confirmed-block', (blockHash: string) => {
+            console.log(`BERA: Got block from event: ${blockHash}`);
+            processBlock(beraWrapper, blockHash);
+        });
+
+        getLatestBlockLoop(beraWrapper);
+
+        beraWrapper.initEventSystem();
+
+        console.log("Setup all event processors for BERA chain.");
+    }
 }
 
 startHealthcheckServer();

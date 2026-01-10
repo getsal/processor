@@ -36,5 +36,12 @@ export const chainConfig: any = {
         deleteBlocksOlderThanSeconds: 3600,
         deleteBlocksAmount: 200,
         txsCollection: false
+    },
+    BERA: {
+        wikiname: 'berachain',
+        storeBlockFile: false,
+        deleteBlocksOlderThanSeconds: 3600,
+        deleteBlocksAmount: 200,
+        txsCollection: false
     }
 }

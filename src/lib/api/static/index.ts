@@ -44,8 +44,8 @@ staticRouter.get('/live/:file', async (request: Request, response: Response) => 
             // and telling cloudflare to not cache the data. 
             JSON.parse(data); 
 
-            fileCache[filePath] = data;  
-            cacheExpire[filePath] = Date.now() + 2000; 
+            fileCache[file] = data;  
+            cacheExpire[file] = Date.now() + 2000; 
             return response.set('content-type', 'application/json').send(data); 
         } catch (error) {
             console.error(error); 

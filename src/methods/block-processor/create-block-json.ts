@@ -28,8 +28,10 @@ export default async (chain: string, block: any): Promise<any> => {
 
 
         const requiresBlocksForBroadcast: string[] = []; 
-        if(block.parentHash) requiresBlocksForBroadcast.push(block.parentHash); 
-        if(block.uncles && block.uncles.length) requiresBlocksForBroadcast.push(...block.uncles); 
+        if(chain !== 'BERA') {
+            if(block.parentHash) requiresBlocksForBroadcast.push(block.parentHash); 
+            if(block.uncles && block.uncles.length) requiresBlocksForBroadcast.push(...block.uncles); 
+        } 
         
         let readyToBroadcast = true; 
         if(requiresBlocksForBroadcast.length > 0) {
@@ -43,8 +45,12 @@ export default async (chain: string, block: any): Promise<any> => {
             }
         }
 
-        if(readyToBroadcast) 
+        if(readyToBroadcast) {
+            console.log(`[BlockProcessor] broadcasting block ${block.height} (${block.hash})`); 
             redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash })); 
+        } else {
+            console.log(`[BlockProcessor] block ${block.height} NOT ready to broadcast`);
+        } 
 
 
         // Update this block to be stored, and set broadcast to isReady. 

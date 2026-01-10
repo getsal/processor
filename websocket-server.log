@@ -1,0 +1,69 @@
+Valid chains: [
+  'BTC',  'LTC',
+  'BCH',  'XMR',
+  'ETH',  'RINKEBY',
+  'ARBI', 'BERA'
+]
+Enabled chains: [ 'BERA' ]
+Finding house info for ticker: BERA
+Finished finding house info for ticker: BERA
+Loading events...
+Found files: [
+  'disconnect.d.ts',
+  'disconnect.js',
+  'disconnect.js.map',
+  'disconnecting.d.ts',
+  'disconnecting.js',
+  'disconnecting.js.map',
+  'error.d.ts',
+  'error.js',
+  'error.js.map',
+  'fetch-block.d.ts',
+  'fetch-block.js',
+  'fetch-block.js.map',
+  'fetch-stat.d.ts',
+  'fetch-stat.js',
+  'fetch-stat.js.map',
+  'get-recent-house-txs.d.ts',
+  'get-recent-house-txs.js',
+  'get-recent-house-txs.js.map',
+  'join-room.d.ts',
+  'join-room.js',
+  'join-room.js.map',
+  'leave-room.d.ts',
+  'leave-room.js',
+  'leave-room.js.map'
+]
+Loaded event disconnect.js
+Loaded event disconnecting.js
+Loaded event error.js
+Loaded event fetch-block.js
+starting BERA 1d
+Loaded event fetch-stat.js
+Loaded event get-recent-house-txs.js
+Loaded event join-room.js
+Loaded event leave-room.js
+Start listening
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::8081
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at /Users/suzuki/Dev/Bera_tx_street/processor/dist/entry/websocket-server.js:157:12
+    at Generator.next (<anonymous>)
+    at fulfilled (/Users/suzuki/Dev/Bera_tx_street/processor/dist/entry/websocket-server.js:28:58)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 8081
+}
+
+Node.js v25.2.1

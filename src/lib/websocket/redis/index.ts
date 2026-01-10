@@ -27,9 +27,14 @@ subscriber.on('subscribe', (channel: string, count: number) => {});
 // Register a dynamic subscription for messages.
 subscriber.on('message', (channel: string, messageStr: string) => {
     try {
+        console.log(`[Redis] Received message on channel: ${channel}`);
         const message = JSON.parse(messageStr); 
         const handler = handlers[channel]; 
-        if(handler) handler(message); 
+        if(handler) {
+            handler(message); 
+        } else {
+            console.warn(`[Redis] No handler found for channel: ${channel}`);
+        }
     } catch (error) {
         console.error(error);
     }

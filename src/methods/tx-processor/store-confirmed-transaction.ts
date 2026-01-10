@@ -18,7 +18,7 @@ export default async (wrapper: BlockchainWrapper, transactions: any[]): Promise<
                 updateOne: {
                     filter: { hash: transaction.hash }, 
                     update: {
-                        $set: { ...transaction, locked: false, confirmed: true, processFailures: 0, lastProcessed: Date.now(), timestamp: Date.now(), note: '[txp]: store-confirmed-tx' },
+                        $set: { ...transaction, locked: false, confirmed: true, processFailures: 0, lastProcessed: Date.now(), timestamp: Date.now(), note: '[txp]: store-confirmed-tx', txProcessed: true },
                     }
                 }
             })

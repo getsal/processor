@@ -97,6 +97,14 @@ const run = async () => {
         if(process.env.PROCESS_CONFIRMED == "true")
             processConfirmed(rinkebyWrapper);
     }
+
+    if(nodesToInit.includes('BERA')) {
+        const beraWrapper = new Wrappers.BERAWrapper(process.env.BERA_NODE as string);
+        if(process.env.PROCESS_PENDING == "true")
+            processPending(beraWrapper);
+        if(process.env.PROCESS_CONFIRMED == "true")
+            processConfirmed(beraWrapper);
+    }
 }
 
 startHealthcheckServer();

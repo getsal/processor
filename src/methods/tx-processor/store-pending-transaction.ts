@@ -1,6 +1,6 @@
 import { BlockchainWrapper } from '../../lib/node-wrappers';
 import mongodb from '../../databases/mongodb';
-import redis from '../../databases/redis';
+import redis from '../../databases/redisEvents';
 import { formatTransaction } from '../../lib/utilities';
 
 export default async (wrapper: BlockchainWrapper, transactions: any[]): Promise<boolean> => {

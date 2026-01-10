@@ -4,6 +4,7 @@ import mongodb from '../../databases/mongodb';
 // needs to be handled. Inside of this method we also lock the request so that other block
 // processors can not handle it. 
 export default async (chain: string): Promise<string | null> => {
+    console.log(`Checking for requests for chain: ${chain}`);
     // Get a reference to the database collection, setup collections & sessions for transactions. 
     const { connection, database } = await mongodb(); 
     const collection = database.collection('blocks');

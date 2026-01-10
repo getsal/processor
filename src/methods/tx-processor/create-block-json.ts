@@ -7,9 +7,10 @@ import path from 'path';
 // The purpose of this function is to curate and store the JSON information for this block.
 // This includes the task of querying for the txFull object and other information.
 export default async (chain: string, block: any): Promise<any> => {
+    console.log(`Creating block JSON for ${chain} block ${block.height} (${block.hash})...`);
     try {        
         const { database } = await mongodb(); 
-
+        console.log(`Searching for ${block.transactions.length} transactions in transactions_${chain}...`);
         // Obtain the txFull list from the database by querying all the transactions.
         const transactions = await database.collection('transactions_' + chain || '').find({
             hash: { $in: block.transactions },
@@ -47,7 +48,7 @@ export default async (chain: string, block: any): Promise<any> => {
         await storeObject(path.join('blocks', chain, block.hash), fileContents);
         return block; 
     } catch (error) {
-        console.error(error);
+        console.error(`FAILED to create block JSON for ${chain} ${block.hash}:`, error);
         return null;
     }
 }

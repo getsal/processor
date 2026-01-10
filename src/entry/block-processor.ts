@@ -84,6 +84,14 @@ const run = async () => {
 
         nonBlockingInfiniteLoop(rinkebyWrapper); 
     }
+
+    if(nodesToInit.includes('BERA')) {
+        initHooks("BERA");
+        const wrapperClass = await import("../lib/node-wrappers/BERA");
+        const beraWrapper = new wrapperClass.default(process.env.BERA_NODE as string);
+        console.log('Starting BERA block processor...');
+        nonBlockingInfiniteLoop(beraWrapper); 
+    }
 }
 
 startHealthcheckServer();

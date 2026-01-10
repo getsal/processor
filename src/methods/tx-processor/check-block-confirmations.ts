@@ -1,6 +1,6 @@
 import { BlockchainWrapper } from "../../lib/node-wrappers";
 import mongodb from '../../databases/mongodb'
-import redis from '../../databases/redis'
+import redis from '../../databases/redisEvents'
 import createBlockJson from "./create-block-json";
 
 const execute = async (database: any, chain: string, hash: string) => {
@@ -18,8 +18,10 @@ const execute = async (database: any, chain: string, hash: string) => {
         return;
     
     const requiresBlocksForBroadcast: string[] = []; 
-    if(block.parentHash) requiresBlocksForBroadcast.push(block.parentHash); 
-    if(block.uncles && block.uncles.length) requiresBlocksForBroadcast.push(...block.uncles); 
+    if(chain !== 'BERA') {
+        if(block.parentHash) requiresBlocksForBroadcast.push(block.parentHash); 
+        if(block.uncles && block.uncles.length) requiresBlocksForBroadcast.push(...block.uncles); 
+    } 
     
     let readyToBroadcast = true; 
     if(requiresBlocksForBroadcast.length > 0) {
@@ -37,8 +39,12 @@ const execute = async (database: any, chain: string, hash: string) => {
         }
     }
 
-    if(readyToBroadcast) 
+    if(readyToBroadcast) {
+        console.log(`[TxProcessor] broadcasting block ${block.height} (${block.hash})`);
         redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash })); 
+    } else {
+        console.log(`[TxProcessor] block ${block.height} NOT ready to broadcast (missing parents/uncles?)`);
+    } 
 
     await blockCollection.updateOne(
         { chain, hash },

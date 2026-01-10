@@ -54,8 +54,9 @@ const watchStatistics = async() => {
     setInterval(() => {
         const diff = Date.now() - lastUpdate;
         if(diff > 60000){
-            console.log("stream not update in a while");
-            process.exit(1);
+            console.log("stream not update in a while (this is normal without replica set)");
+            // Don't exit without replica set
+            // process.exit(1);
         }
     }, 1000);
 
@@ -79,8 +80,9 @@ const watchStatistics = async() => {
     });
     stream.on('error', (err: any) => {
         console.log(new Date() + ' error: ' + err);
-        process.exit(1);
-        // startStream();
+        console.log('Warning: MongoDB changeStream not available (requires replica set). Real-time statistics disabled.');
+        // Don't exit - allow server to continue without real-time stats
+        // process.exit(1);
     });
     stream.on('change', (next: any) => {
         // console.log(next);
@@ -110,8 +112,9 @@ const watchHistory = async() => {
     setInterval(() => {
         const diff = Date.now() - lastUpdate;
         if(diff > 60000){
-            console.log("stream not update in a while");
-            process.exit(1);
+            console.log("stream not update in a while (this is normal without replica set)");
+            // Don't exit without replica set
+            // process.exit(1);
         }
     }, 1000);
 
@@ -128,7 +131,9 @@ const watchHistory = async() => {
     });
     stream.on('error', (err: any) => {
         console.log(new Date() + ' error: ' + err)
-        process.exit(1);
+        console.log('Warning: MongoDB changeStream not available (requires replica set). Real-time history disabled.');
+        // Don't exit - allow server to continue without real-time history
+        // process.exit(1);
     });
     stream.on('change', (next: any) => {
         // Sanity checks. 

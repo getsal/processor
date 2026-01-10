@@ -22,7 +22,10 @@ export default async (wrapper: BlockchainWrapper): Promise<any[]> => {
         // being executed in the middle.
         await session.withTransaction(async () => {
             // The query to find documents to return as results. 
-            let where: any =  { confirmed: false, processed: true, blockHeight: { $ne: null }, locked: false, processFailures: { $lte: 5 } }
+            // FIX: We are looking for transactions included in a block, so confirmed should be true.
+            let where: any =  { confirmed: true, processed: true, blockHeight: { $ne: null }, locked: false, processFailures: { $lte: 5 }, txProcessed: { $ne: true } }
+            // console.log(`Searching for confirmed batch with query:`, JSON.stringify(where, null, 2));
+            // console.log(`On collection:`, collection.collectionName);
 
             let project: any = {
                 _id: 0, processed: 1, locked: 1, processFailures: 1, hash: 1, from: 1, value: 1, to: 1

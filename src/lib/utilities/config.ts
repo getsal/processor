@@ -40,7 +40,7 @@ class Config {
     this.dataDir         = env.DATA_DIR;
     this.envChains       = filterValidChains(chainsFromEnv(env.CHAINS || ""));
 
-    if (!/^mongodb:/.test(this.mongodbUri)) {
+    if (!/^mongodb(\+srv)?:/.test(this.mongodbUri)) {
       throw new Error("Invalid $MONGODB_URI");
     }
 

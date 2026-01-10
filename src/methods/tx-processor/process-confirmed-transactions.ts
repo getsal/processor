@@ -104,7 +104,9 @@ export default async (wrapper: BlockchainWrapper): Promise<any> => {
         await checkHousing(wrapper, transactions);
 
         if ((wrapper as any).getTransactionCount) {
-            transactions = await updateAccountNonces(wrapper, transactions, false, true);
+          //  transactions = await updateAccountNonces(wrapper, transactions, false, true);
+    console.log("Skipping updateAccountNonces for BERA debugging");
+
         }
 
         // Update all successful transactions with the appropriate transaction data. 
