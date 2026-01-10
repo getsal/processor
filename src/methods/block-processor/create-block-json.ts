@@ -47,7 +47,7 @@ export default async (chain: string, block: any): Promise<any> => {
 
         if(readyToBroadcast) {
             console.log(`[BlockProcessor] broadcasting block ${block.height} (${block.hash})`); 
-            redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash })); 
+            redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash, block: formatted })); 
         } else {
             console.log(`[BlockProcessor] block ${block.height} NOT ready to broadcast`);
         } 
@@ -61,7 +61,7 @@ export default async (chain: string, block: any): Promise<any> => {
 
         // Submit this block to the front-end if it was ready.
         if(readyToBroadcast)
-            redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash })); 
+            redis.publish('block', JSON.stringify({ chain, height: block.height, hash: block.hash, block: formatted })); 
         return block; 
     } catch (error) {
         console.error(error); 

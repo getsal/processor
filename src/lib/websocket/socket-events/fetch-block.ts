@@ -12,8 +12,15 @@ export default async (socket: SocketIO.Socket, chain: string, hash: string) => {
             return socket.emit('fetch-block', hash, null, lastBlock);
     }
 
-    const block = await readNFSFile(`blocks/${chain}/${hash}`);
-    if (block) return socket.emit('fetch-block', hash, null, block);
+    const blockStr = await readNFSFile(`blocks/${chain}/${hash}`);
+    if (blockStr) {
+        try {
+            const block = JSON.parse(blockStr);
+            return socket.emit('fetch-block', hash, null, block);
+        } catch (e) {
+            return socket.emit('fetch-block', hash, 'Failed to parse block', null);
+        }
+    }
 
     return socket.emit('fetch-block', hash, 'Block not found 2', null);
 }
