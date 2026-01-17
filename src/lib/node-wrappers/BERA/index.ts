@@ -11,30 +11,39 @@ import { Web3Bera } from './web3_extended';
  * transaction/block data retrieval methods.
  */
 class BERAWrapper extends BlockchainWrapper {
-    private wsProvider: WebsocketProvider;
+    private wsProvider: WebsocketProvider | null = null;
     protected web3: Web3;
+    private isHttp: boolean = false;
+    private pollingInterval: NodeJS.Timeout | null = null;
+    private lastBlockHeight: number = 0;
 
     constructor(host: string) {
         super('BERA');
 
-        // Initialize web3 with WebSocket provider
-        const options = {
-            clientConfig: {
-                maxReceivedFrameSize: 10000000000,
-                maxReceivedMessageSize: 10000000000,
-                keepalive: true,
-                keepaliveInterval: 1000,
-            },
-            reconnect: {
-                auto: true,
-                delay: 1000,
-                maxAttempts: Number.MAX_SAFE_INTEGER,
-                onTimeout: false
-            }
-        };
+        this.isHttp = host.startsWith('http');
 
-        this.wsProvider = new Web3.providers.WebsocketProvider(host, options);
-        this.web3 = new Web3(this.wsProvider);
+        if (this.isHttp) {
+            this.web3 = new Web3(new Web3.providers.HttpProvider(host));
+        } else {
+            // Initialize web3 with WebSocket provider
+            const options = {
+                clientConfig: {
+                    maxReceivedFrameSize: 10000000000,
+                    maxReceivedMessageSize: 10000000000,
+                    keepalive: true,
+                    keepaliveInterval: 1000,
+                },
+                reconnect: {
+                    auto: true,
+                    delay: 1000,
+                    maxAttempts: Number.MAX_SAFE_INTEGER,
+                    onTimeout: false
+                }
+            };
+    
+            this.wsProvider = new Web3.providers.WebsocketProvider(host, options);
+            this.web3 = new Web3(this.wsProvider);
+        }
 
         this.extendWeb3();
     }
@@ -49,29 +58,124 @@ class BERAWrapper extends BlockchainWrapper {
                 { name: "status", call: "txpool_status" }
             ]
         });
+
+        this.web3.eth.extend({
+            methods: [
+                { name: "newPendingTransactionFilter", call: "eth_newPendingTransactionFilter" },
+                { name: "getFilterChanges", call: "eth_getFilterChanges", params: 1 }
+            ]
+        });
     }
 
     /**
      * Initialize event subscriptions for pending transactions and new blocks
      */
     public initEventSystem() {
-        // Subscribe to pending transactions
-        this.web3.eth.subscribe('pendingTransactions', (error: any, result: any) => { })
-            .on('data', async (hash: string) => {
-                try {
-                    const transaction = await this.getTransaction(hash, 2);
-                    if (!transaction) return;
-                    this.emit('mempool-tx', transaction);
-                } catch (error) {
-                    console.error('BERA: Error processing pending tx:', error);
-                }
-            });
+        console.log(`BERA: Initializing event system (Mode: ${this.isHttp ? 'HTTP Polling' : 'WebSocket'})`);
 
-        // Subscribe to new block headers
-        this.web3.eth.subscribe('newBlockHeaders', (error: any, result: any) => { })
-            .on('data', (block: any) => {
-                this.emit('confirmed-block', block.hash);
-            });
+        if (this.isHttp) {
+            // HTTP Polling mode
+            this.startPolling();
+        } else {
+            // WebSocket Subscription mode
+            this.web3.eth.subscribe('pendingTransactions', (error: any, result: any) => { })
+                .on('data', async (hash: string) => {
+                    try {
+                        const transaction = await this.getTransaction(hash, 2);
+                        if (!transaction) return;
+                        this.emit('mempool-tx', transaction);
+                    } catch (error) {
+                        console.error('BERA: Error processing pending tx:', error);
+                    }
+                });
+    
+            this.web3.eth.subscribe('newBlockHeaders', (error: any, result: any) => { })
+                .on('data', (block: any) => {
+                    this.emit('confirmed-block', block.hash);
+                });
+        }
+    }
+
+    /**
+     * Poll for new blocks and pending transactions
+     */
+    private async startPolling() {
+        // Poll for blocks every 2 seconds
+        setInterval(async () => {
+            try {
+                const currentBlockNumber = await this.web3.eth.getBlockNumber();
+                if (currentBlockNumber > this.lastBlockHeight) {
+                    if (this.lastBlockHeight > 0) {
+                        // Process missed blocks if any, up to a limit
+                        const start = this.lastBlockHeight + 1;
+                        for (let i = start; i <= currentBlockNumber; i++) {
+                            try {
+                                const block = await this.web3.eth.getBlock(i, false);
+                                if (block && block.hash) {
+                                  this.emit('confirmed-block', block.hash);
+                                }
+                            } catch (e) {
+                                console.error(`BERA: Error fetching block ${i}:`, e);
+                            }
+                        }
+                    } else {
+                         // First run, just emit current
+                         const block = await this.web3.eth.getBlock(currentBlockNumber, false);
+                         if(block && block.hash) {
+                            this.emit('confirmed-block', block.hash);
+                         }
+                    }
+                    this.lastBlockHeight = currentBlockNumber;
+                }
+            } catch (error) {
+                console.error('BERA: Polling error:', error);
+            }
+        }, 2000);
+
+        // Initialize pending transaction filter
+        let filterId: string | null = null;
+        try {
+            // @ts-ignore - Web3 type definitions might be incomplete
+            filterId = await this.web3.eth.newPendingTransactionFilter();
+            console.log("BERA: Pending Transaction Filter created:", filterId);
+        } catch (e) {
+            console.warn("BERA: Pending Tx filter not supported over HTTP:", e);
+        }
+
+        // Poll for pending transactions every 1 second
+        setInterval(async () => {
+            if (!filterId) {
+                // Try to recreate filter if it failed initially or was lost
+                try {
+                    // @ts-ignore
+                    filterId = await this.web3.eth.newPendingTransactionFilter();
+                } catch (e) { return; }
+            }
+
+            try {
+                // @ts-ignore
+                const changes = await this.web3.eth.getFilterChanges(filterId);
+                
+                if (Array.isArray(changes) && changes.length > 0) {
+                    // Limit processing to avoid overwhelming
+                    const hashes = changes.slice(0, 50); 
+                    
+                    for (const hash of hashes) {
+                        if (typeof hash === 'string') {
+                            this.getTransaction(hash, 0)
+                                .then(tx => {
+                                    if (tx) this.emit('mempool-tx', tx);
+                                })
+                                .catch(e => { /* ignore tx fetch errors */ });
+                        }
+                    }
+                }
+            } catch (error: any) {
+                console.error('BERA: Error polling pending txs:', error.message);
+                // Reset filter ID on error (likely timeout or invalid)
+                filterId = null;
+            }
+        }, 1000);
     }
 
     /**
@@ -303,7 +407,13 @@ class BERAWrapper extends BlockchainWrapper {
      * Stop the WebSocket connection
      */
     public async stop(): Promise<void> {
-        await this.wsProvider.disconnect();
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+        if (this.wsProvider) {
+            await this.wsProvider.disconnect();
+        }
     }
 };
 

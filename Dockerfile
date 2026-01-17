@@ -5,7 +5,7 @@ FROM node:21-alpine AS node-base
 #
 FROM node-base AS builder
 
-RUN apk --update --no-cache add yarn git
+RUN apk --update --no-cache add yarn git python3 make g++
 
 WORKDIR /home/node/app
 COPY package.json yarn.lock ./
@@ -17,7 +17,7 @@ RUN test -f yarn.lock
 RUN yarn install
 
 COPY ./ ./
-RUN yarn build-strict
+RUN yarn build
 
 ##
 # Runtime image

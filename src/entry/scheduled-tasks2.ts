@@ -32,6 +32,7 @@ const initialize = async () => {
                 blocks = new DropoutContainer<ProjectedEthereumBlock>(`blocks-${chainToInit}.bin`, ETHBlocksSchema, 'hash', ((1000 * 60) * 60) * 24, 'timestamp', false, 250);
                 break;
             case 'ARBI':
+            case 'BERA':
                 transactions = new DropoutContainer<ProjectedEthereumTransaction>(`transactions-${chainToInit}.bin`, ETHTransactionsSchema, 'hash', ((1000 * 60) * 60) * 1, 'insertedAt', true);
                 blocks = new DropoutContainer<ProjectedEthereumBlock>(`blocks-${chainToInit}.bin`, ETHBlocksSchema, 'hash', ((1000 * 60) * 60) * 2, 'timestamp', false, 250);
                 break;

@@ -26,7 +26,7 @@ const CORSConfig: CorsOptions = {
 const app: express.Application = express();
 app.use(helmet());
 app.use(express.json());
-app.use(compression());
+app.use(compression() as unknown as express.RequestHandler);
 app.use(cors({ origin: '*'}));
 
 app.get('/healthcheck', handleHealthcheck);

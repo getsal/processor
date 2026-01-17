@@ -35,6 +35,8 @@ staticRouter.get('/live/:file', async (request: Request, response: Response) => 
 
             // Sanity
             if(!data || !data.length) {
+                if(file.includes('pendingTxs')) return response.json([]);
+
                 response.set('Cache-Control', 'no-store, max-age=0');
                 response.set('Expires', '0'); 
                 return response.status(404).send(false); 

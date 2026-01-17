@@ -253,7 +253,10 @@ export default async (socket: SocketIO.Socket, chain: string, identifier: string
     if (!key)
         return socket.emit('fetch-stat', identifier, `You must provide a stat-key with your request.`);
     if (!stats[chain]?.[historyInterval]?.[key]){
-        return socket.emit('fetch-stat', identifier, `Key (${key} in ${historyInterval} in ${chain}) is unknown, please use a valid statistical identifier.`);
+        if (!stats[chain]) stats[chain] = {};
+        if (!stats[chain][historyInterval]) stats[chain][historyInterval] = {};
+        stats[chain][historyInterval][key] = [];
+        // return socket.emit('fetch-stat', identifier, `Key (${key} in ${historyInterval} in ${chain}) is unknown, please use a valid statistical identifier.`);
     }
         if (!history && !subscribe && !returnValue)
         return socket.emit('fetch-stat', identifier, `You must either request history, a return value, or subscribe to a stat.`);
